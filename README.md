@@ -49,16 +49,16 @@ wifi <SSID> <Password>
 | Command                    | Action                                                             |
 | -------------------------- | ------------------------------------------------------------------ |
 | help                       | Displays this help                                                 |
-| wifi <SSID> <pwd>          | Sets WIFI SSID and password                                        |
+| wifi &lt;SSID&gt; &lt;pwd&gt;          | Sets WIFI SSID and password                                        |
 | printwifi                  | Display Wifi settings                                              |
 | wifistatus                 | Display Wifi status                                                |
-| setmes <interval>          | Set Graph measurement interval (in seconds)                        |
+| setmes &lt;interval&gt;          | Set Graph measurement interval (in seconds)                        |
 | getmes                     | Display Graph measurement interval                                 |
-| setoff <voltage>           | Set current sensor output offset                                   |
-| setmul <factor>            | Set current sensor output coefficient                              |
+| setoff &lt;voltage&gt;           | Set current sensor output offset                                   |
+| setmul &lt;factor&gt;            | Set current sensor output coefficient                              |
 | getcalib                   | Display current sensor calibration values (offset and coefficient) |
-| startcalib1 <count> <aref> | Calibrate Offset (aref is applied current)                         |
-| startcalib2 <count> <aref> | Calibrate Coefficient (aref is applied current)                    |
+| startcalib1 &lt;count&gt; &lt;aref&gt; | Calibrate Offset (aref is applied current)                         |
+| startcalib2 &lt;count&gt; &lt;aref&gt; | Calibrate Coefficient (aref is applied current)                    |
 
 ### Calibration procedure
 Use an external power supply which can be current limited.
