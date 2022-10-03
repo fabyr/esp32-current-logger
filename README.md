@@ -32,6 +32,56 @@ SPI Pinout of the ESP32:
 
 Current Sensor Pin: GPIO35
 
+## Usage
+The contents of the [SdCard](/SdFiles/) folder have to be at the root directory of the inserted sdcard.
+
+After flashing your ESP32 it should be ready.
+Serial communication happens at 115200 baud.
+Line terminator is just a newline character `\n`.
+
+The first thing necessary is to setup wifi using the `wifi` command:
+```
+wifi <SSID> <Password>
+```
+
+### Referance of all available commands
+(Also printable from the ESP32 using the command `help`)
+| Command                    | Action                                                             |
+| -------------------------- | ------------------------------------------------------------------ |
+| help                       | Displays this help                                                 |
+| wifi <SSID> <pwd>          | Sets WIFI SSID and password                                        |
+| printwifi                  | Display Wifi settings                                              |
+| wifistatus                 | Display Wifi status                                                |
+| setmes <interval>          | Set Graph measurement interval (in seconds)                        |
+| getmes                     | Display Graph measurement interval                                 |
+| setoff <voltage>           | Set current sensor output offset                                   |
+| setmul <factor>            | Set current sensor output coefficient                              |
+| getcalib                   | Display current sensor calibration values (offset and coefficient) |
+| startcalib1 <count> <aref> | Calibrate Offset (aref is applied current)                         |
+| startcalib2 <count> <aref> | Calibrate Coefficient (aref is applied current)                    |
+
+### Calibration procedure
+Use an external power supply which can be current limited.
+Supply a known amount of current through the current sensor.
+
+Then use the startcalib commands to calibrate.
+Generally each of them only has to be performed once.
+
+For example:
+```
+startcalib1 100 0
+```
+This will calibrate the offset when no current is applied.
+It will take record of 100 measurements and average them out.
+Afterwards a fitting offset will be calculated to bring the measured values closer the the real current that
+has been flowing (in this case 0).
+
+```
+startcalib2 100 5
+```
+This will find the correct multiplier so that the read value becomes the applied current (in this case 5 amps).
+Before the calibration has not finished do not change the applied current.
+
 ## Screenshots
 Start-Page
 
