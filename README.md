@@ -10,6 +10,7 @@ medium. (Unit is Moles of Electrons)
 - [chart.js](https://www.chartjs.org/)
 - [moment.js](https://momentjs.com/)
 - [chartjs-adapter-moment](https://github.com/chartjs/chartjs-adapter-moment)
+- [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
 
 ## Wiring
 This software was tested on an ESP32-WROOM-32.
