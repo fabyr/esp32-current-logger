@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <title>Current Meter</title>
+        <script>
+            const nan = 0.0 / 0.0;
+            const runname = "%RUNNAME%";
+            const current = Math.abs(%CURRENT%);
+            const charge = %CHARGE%;
+            var runs = [ %RUNLIST% ];
+
+            const decimals = 2;
+
+            const avogadrosConstant = 6.02214076e23;
+            const elementaryCharge = 1.602176634e-19;
+            const factor = avogadrosConstant * elementaryCharge;
+            const moles = coulomb_to_mol(charge);
+
+            function coulomb_to_mol(x)
+            {
+                return x / factor;
+            }
+
+            function millenium_fmt(x)
+            {
+                const list = [ [1e9, "G", "Giga"], [1e6, "M", "Mega"], [1e3, "k", "Kilo"], [1, "", ""], 
+                               [1e-3, "m", "Milli"], [1e-6, "\xb5", "Micro"], [1e-9, "n", "Nano"] ];
+                
+                for(const [threshold, word, longword] of list)
+                {
+                    if(x > threshold)
+                    {
+                        return { value: x / threshold, word: word, longword: longword };
+                    }
+                }
+                // Default to the last one
+                const [threshold, word, longword] = list[list.length - 1];
+                return { value: x / threshold, word: word, longword: longword };
+            }
+
+            function decimal(x, places)
+            {
+                const pow = Math.pow(10, places);
+                return Math.round(x * pow) / pow; 
+            }
+
+            function loaded()
+            {
+                document.getElementById("runname").innerHTML = runname;
+
+                const elemCurrent = document.getElementById("current");
+                const elemCharge = document.getElementById("charge");
+                const elemMol = document.getElementById("moles");
+
+                const currentObj = millenium_fmt(current);
+                const chargeObj = millenium_fmt(charge);
+                const molObj = millenium_fmt(moles);
+
+                let currentLongword = "ampere";
+                let chargeLongword = "coulomb";
+                let molLongword = "moles";
+                if(currentObj.longword.length == 0)
+                    currentLongword = currentLongword.charAt(0).toUpperCase() + currentLongword.substring(1);
+                if(chargeObj.longword.length == 0)
+                    chargeLongword = chargeLongword.charAt(0).toUpperCase() + chargeLongword.substring(1);
+                if(molObj.longword.length == 0)
+                    molLongword = molLongword.charAt(0).toUpperCase() + molLongword.substring(1);
+                
+                elemCurrent.innerHTML = `${decimal(currentObj.value, decimals)} ${currentObj.word}A (${currentObj.longword}${currentLongword})`;
+                elemCharge.innerHTML = `${decimal(chargeObj.value, decimals)} ${chargeObj.word}C (${chargeObj.longword}${chargeLongword})`;
+                elemMol.innerHTML = `${decimal(molObj.value, decimals)} ${molObj.word}mol (${molObj.longword}${molLongword})`;
+            
+                const elemRun = document.getElementById("runcontainer");
+                runs = runs.reverse();
+                for(const run of runs)
+                {
+                    const split = run.split('_');
+                    const date = moment(Number(split[0]) * 1000).format("DD.MM.YYYY HH:mm:ss");
+                    elemRun.innerHTML += `<li><a href="/view?run=${run}">${date} (${split[1]})</a></li>`;
+                }
+            }
+
+            window.addEventListener('load', loaded, true);
+        </script>
+    </head>
+    <body>
+        <h1>Current Meter</h1>
+        <p>Current Run Name: <span id="runname"></span></p>
+        <p>Current: <span id="current"></span></p>
+        <p>Total Charge: <span id="charge"></span></p>
+        <p>Total Electrons: <span id="moles"></span></p>
+        <hr>
+        <form action="/reset">
+            <input type="submit" value="Reset Run">
+        </form>
+        <hr>
+        <h3>Runs</h3>
+        <ul id="runcontainer"></ul>
+    </body>
+</html>

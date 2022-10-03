@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.0/chartjs-adapter-moment.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>
+            function decimal(x, places)
+            {
+                const pow = Math.pow(10, places);
+                return Math.round(x * pow) / pow; 
+            }
+            function millenium_fmt(x)
+            {
+                const list = [ [1e9, "G", "Giga"], [1e6, "M", "Mega"], [1e3, "k", "Kilo"], [1, "", ""], 
+                               [1e-3, "m", "Milli"], [1e-6, "\xb5", "Micro"], [1e-9, "n", "Nano"] ];
+                
+                for(const [threshold, word, longword] of list)
+                {
+                    if(x > threshold)
+                    {
+                        return { value: x / threshold, word: word, longword: longword };
+                    }
+                }
+                // Default to the last one
+                const [threshold, word, longword] = list[list.length - 1];
+                return { value: x / threshold, word: word, longword: longword };
+            }
+            const avogadrosConstant = 6.02214076e23;
+            const elementaryCharge = 1.602176634e-19;
+            const factor = avogadrosConstant * elementaryCharge;
+            function coulomb_to_mol(x)
+            {
+                return x / factor;
+            }
+        </script>
+        <script>
+            const file = "%FILECONTENT%";
+            const decimals = 2;
+
+            function dateISOFmt(date)
+            {
+                return moment(date).format("YYYY-MM-DD HH:mm:ss");
+            }
+            
+            function loaded()
+            {
+                const split = file.split('|').filter(x => x.trim().length > 0);
+                let data = [];
+                for(const row of split)
+                {
+                    const rowparts = row.split(';');
+                    data.push({ x: dateISOFmt(Number(rowparts[0]) * 1000), current: Math.abs(Number(rowparts[1])), charge: rowparts[2], mol: coulomb_to_mol(Number(rowparts[2])) });
+                }
+                data.sort(function (a,b){ return a.x - b.x; });
+                
+                const ctx = document.getElementById('chart');
+                const myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Current',
+                            backgroundColor: 'rgb(255, 99, 132)',
+                            borderColor: 'rgb(255, 99, 153)',
+                            data: data,
+                            yAxisID: 'currentAxis',
+                            parsing: {
+                                yAxisKey: 'current'
+                            }
+                        }, {
+                            label: 'Charge',
+                            backgroundColor: 'rgb(153, 51, 255)',
+                            borderColor: 'rgb(153, 9, 255)',
+                            data: data,
+                            yAxisID: 'chargeAxis',
+                            parsing: {
+                                yAxisKey: 'charge'
+                            }
+                        }, {
+                            label: 'Electrons',
+                            backgroundColor: 'rgb(26, 234, 11)',
+                            borderColor: 'rgb(42, 222, 5)',
+                            data: data,
+                            yAxisID: 'molAxis',
+                            parsing: {
+                                yAxisKey: 'mol'
+                            }
+                        }],
+                        indexAxis: 'x'
+                    },
+                    options: {
+                        normalized: true,
+                        animation: false,
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                type: 'time'
+                            },
+                            currentAxis: {
+                                type: 'linear',
+                                position: 'left',
+                                grid: { display: false },
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        x = millenium_fmt(value);
+                                        return x.value + " " + x.word + "A";
+                                    }
+                                }
+                            },
+                            chargeAxis: {
+                                type: 'linear',
+                                position: 'right',
+                                grid: { display: false },
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        x = millenium_fmt(value);
+                                        return x.value + " " + x.word + "C";
+                                    }
+                                }
+                            },
+                            molAxis: {
+                                type: 'linear',
+                                position: 'right',
+                                grid: { display: false },
+                                ticks: { display: false }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            mfmt = millenium_fmt(context.parsed.y);
+                                            label += decimal(mfmt.value, decimals);
+                                            label += ' ';
+                                            // Suffix based on dataset
+                                            switch(context.dataset.parsing.yAxisKey)
+                                            {
+                                                case "current":
+                                                    label += mfmt.word;
+                                                    label += 'A';
+                                                    break;
+                                                case "charge":
+                                                    label += mfmt.word;
+                                                    label += 'C';
+                                                    break;
+                                                case "mol":
+                                                    label += mfmt.word;
+                                                    label += 'mol';
+                                                    break;
+                                            }
+                                        }
+                                        return label;
+                                    },
+                                    title: function(context) {
+                                        context = context[0];
+                                        let label = context.label || '';
+                                        label = new Date(label).toLocaleString();
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('load', loaded, true);
+        </script>
+    </head>
+    <body>
+        <form action="/">
+            <input type="submit" value="Back">
+        </form>
+        <canvas id="chart" width="100" height="40"></canvas>
+    </body>
+</html>
