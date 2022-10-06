@@ -26,6 +26,12 @@
 #define PREF_CAL_OFF "CAL_OFF"
 #define PREF_CAL_MUL "CAL_MUL"
 
+// There will always be some degree of noise and depending on the sensitivity of the current sensor,
+// this can become quite a large amount driving up the "charge counter" even when no current runs through the
+// sensor.
+// This defines a threshold below which the current will be forced set to zero
+#define MINIMUM_CURRENT 0.2 // Amps
+
 // GPIO35 is the pin where the voltage will be read at.
 // Connect the current sensor's output pin to that.
 #define ANALOG_READ_PIN 35
@@ -292,6 +298,8 @@ void update_charge_current()
 
   // Set current and increment charge
   current = ((tmp + calib_offset) * calib_mul);
+  if(current < MINIMUM_CURRENT)
+    current = 0;
   charge += abs(current) * (inter_measurement_interval / 1000.0);
 }
 
