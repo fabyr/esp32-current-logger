@@ -254,7 +254,6 @@ void webserver_handle_index(AsyncWebServerRequest *request)
 // This will be called every inter_measurement_interval milliseconds
 void update_charge_current()
 {
-  const float curmax = 30;
   const int count = 20;
   float analog = 0;
   // Some averaging of the measured analog values
@@ -266,7 +265,7 @@ void update_charge_current()
   analog /= count;
 
   // Calculate the raw, non-calibrated current value
-  float tmp = ((analog / 1000.0f) - 1.65f) * curmax;
+  float tmp = ((analog / 1000.0f) - 1.65f);
 
   // Calibration
   if(do_calib)
@@ -298,7 +297,7 @@ void update_charge_current()
 
   // Set current and increment charge
   current = ((tmp + calib_offset) * calib_mul);
-  if(current < MINIMUM_CURRENT)
+  if(abs(current) < MINIMUM_CURRENT)
     current = 0;
   charge += abs(current) * (inter_measurement_interval / 1000.0);
 }
